@@ -67,6 +67,14 @@ pipeline {
                 '''
             }
         }
+        stage('Semgrep') {
+            steps {
+                sh '''
+                    semgrep ci --config=auto --json > "${WORKSPACE}/results/semgrep_report.json" \
+                        || true
+                '''
+            }
+        }
 
     }
     post {
@@ -87,6 +95,10 @@ pipeline {
             defectDojoPublisher(artifact: 'results/trufflehog_report.json', 
                 productName: 'Juice Shop', 
                 scanType: 'Trufflehog Scan', 
+                engagementName: 'm.kwiatkowski@benefitsystems.pl')
+             defectDojoPublisher(artifact: 'results/semgrep_report.json', 
+                productName: 'Juice Shop', 
+                scanType: 'Semgrep JSON Report', 
                 engagementName: 'm.kwiatkowski@benefitsystems.pl')
         }
     }
