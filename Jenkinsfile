@@ -51,17 +51,18 @@ pipeline {
                 }
             }
         }
-        post {
-            always {
-                echo 'Archiving reports...'
-                archiveArtifacts artifacts: 'results/*.html', fingerprint: true, allowEmptyArchive: true
-                archiveArtifacts artifacts: 'results/*.xml', fingerprint: true, allowEmptyArchive: true
-                echo 'Publishing reports to DefectDojo...'
-                defectDojoPublisher(artifact: 'results/zap_xml_report.xml', 
-                    productName: 'Juice Shop', 
-                    scanType: 'ZAP Scan', 
-                    engagementName: 'm.kwiatkowski@benefitsystems.pl')
-            }
+
+    }
+    post {
+        always {
+            echo 'Archiving reports...'
+            archiveArtifacts artifacts: 'results/*.html', fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'results/*.xml', fingerprint: true, allowEmptyArchive: true
+            echo 'Publishing reports to DefectDojo...'
+            defectDojoPublisher(artifact: 'results/zap_xml_report.xml', 
+                productName: 'Juice Shop', 
+                scanType: 'ZAP Scan', 
+                engagementName: 'm.kwiatkowski@benefitsystems.pl')
         }
     }
 }
