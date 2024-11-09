@@ -12,15 +12,19 @@ pipeline {
                 }
             }
         }
-        stage('Example') {
+        /*stage('Example') {
             steps {
                 echo 'Hello!'
                 sh 'ls -la'
             }
+        }*/
+        stage('Create reports directory') {
+            steps {
+                sh 'mkdir -p results/'
+            }
         }
         stage('[ZAP] Baseline passive-scan') {
             steps {
-                sh 'mkdir -p results/'
                 sh '''
                     docker run --name juice-shop -d --rm \
                         -p 3000:3000 \
@@ -31,8 +35,8 @@ pipeline {
                     docker run --name zap \
                         --add-host=host.docker.internal:host-gateway \
                         -v /Users/marcinkwiatkowski/Developer/code/abcd-student/.zap:/zap/wrk/:rw \
-                        -t ghcr.io/zaproxy/zaproxy:stable bash -c \
-                        "zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive_scan.yaml" \
+                        -t ghcr.io/zaproxy/zaproxy:stable \
+                        bash -c "zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive_scan.yaml" \
                         || true
                 '''
             }
@@ -45,6 +49,18 @@ pipeline {
                         docker rm zap
                     '''
                 }
+            }
+        }
+        post {
+            always {
+                echo 'Archiving reports...'
+                archiveArtifacts artifacts: 'results/*.html', fingerprint: true, allowEmptyArchive: true
+                archiveArtifacts artifacts: 'results/*.xml', fingerprint: true, allowEmptyArchive: true
+                echo 'Publishing reports to DefectDojo...'
+                defectDojoPublisher(artifact: 'results/zap_xml_report.xml', 
+                    productName: 'Juice Shop', 
+                    scanType: 'ZAP Scan', 
+                    engagementName: 'm.kwiatkowski@benefitsystems.pl')
             }
         }
     }

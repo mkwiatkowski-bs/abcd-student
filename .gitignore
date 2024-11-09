@@ -63,3 +63,5 @@ config/*.yml
 
 # System Files
 .DS_Store
+.zap/reports/zap_html_report.html
+.zap/reports/zap_xml_report.xml
