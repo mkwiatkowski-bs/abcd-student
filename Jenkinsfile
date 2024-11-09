@@ -62,7 +62,7 @@ pipeline {
         stage('TruffleHog') {
             steps {
                 sh '''
-                    trufflehog git file://. --branch=main --json --only-verified --fail >> "${WORKSPACE}/results/trufflehog_report.json" \
+                    trufflehog git file://. --branch=main --json --only-verified --fail > "${WORKSPACE}/results/trufflehog_report.json" \
                         || true
                 '''
             }
