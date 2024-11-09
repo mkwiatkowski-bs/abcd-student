@@ -23,7 +23,7 @@ pipeline {
                 sh 'mkdir -p results/'
             }
         }
-        stage('[ZAP] Baseline passive-scan') {
+        stage('ZAP passive scan') {
             steps {
                 sh '''
                     docker run --name juice-shop -d --rm \
@@ -51,6 +51,14 @@ pipeline {
                 }
             }
         }
+        stage('OSV') {
+            steps {
+                sh '''
+                    osv-scanner scan --lockfile package-lock.json --format json --output "${WORKSPACE}/results/osv_report.json"
+                    ||true
+                '''
+            }
+        }
 
     }
     post {
@@ -58,10 +66,15 @@ pipeline {
             echo 'Archiving reports...'
             archiveArtifacts artifacts: 'results/*.html', fingerprint: true, allowEmptyArchive: true
             archiveArtifacts artifacts: 'results/*.xml', fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'results/*.json', fingerprint: true, allowEmptyArchive: true
             echo 'Publishing reports to DefectDojo...'
             defectDojoPublisher(artifact: 'results/zap_xml_report.xml', 
                 productName: 'Juice Shop', 
                 scanType: 'ZAP Scan', 
+                engagementName: 'm.kwiatkowski@benefitsystems.pl')
+            defectDojoPublisher(artifact: 'results/osv_report.json', 
+                productName: 'Juice Shop', 
+                scanType: 'OSV Scan', 
                 engagementName: 'm.kwiatkowski@benefitsystems.pl')
         }
     }
